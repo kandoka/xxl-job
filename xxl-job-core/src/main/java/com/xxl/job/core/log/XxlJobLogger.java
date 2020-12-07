@@ -12,12 +12,14 @@ import java.util.Date;
 
 /**
  * Created by xuxueli on 17/4/28.
+ * 日志类
  */
 public class XxlJobLogger {
     private static Logger logger = LoggerFactory.getLogger("xxl-job logger");
 
     /**
      * append log
+     *  实际写日志文件的方法
      *
      * @param callInfo
      * @param appendLog
@@ -39,6 +41,7 @@ public class XxlJobLogger {
 
         // appendlog
         String logFileName = XxlJobFileAppender.contextHolder.get();
+        //如果日志文件名不为空，则写入日志
         if (logFileName!=null && logFileName.trim().length()>0) {
             XxlJobFileAppender.appendLog(logFileName, formatAppendLog);
         } else {
@@ -48,6 +51,7 @@ public class XxlJobLogger {
 
     /**
      * append log with pattern
+     *
      *
      * @param appendLogPattern  like "aaa {} bbb {} ccc"
      * @param appendLogArguments    like "111, true"

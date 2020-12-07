@@ -67,6 +67,11 @@ public class SampleXxlJob {
             }
         }
 
+        Integer size = param.length();
+        Integer startIndex = size * shardingVO.getIndex() / shardingVO.getTotal();
+        Integer endIndex = size * (shardingVO.getIndex() + 1) /shardingVO.getTotal();
+        System.out.println("开始坐标："+startIndex+" 结束坐标："+endIndex);
+
         return ReturnT.SUCCESS;
     }
 
