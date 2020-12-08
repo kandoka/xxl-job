@@ -3,7 +3,7 @@ package com.xxl.job.admin.core.model;
 import java.util.Date;
 
 /**
- * xxl-job info
+ * xxl-job info 任务信息
  *
  * @author xuxueli  2016-1-12 18:25:49
  */

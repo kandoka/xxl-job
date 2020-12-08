@@ -32,6 +32,7 @@ public class JobScheduleHelper {
     private Thread ringThread;
     private volatile boolean scheduleThreadToStop = false;
     private volatile boolean ringThreadToStop = false;
+    //多少秒后腰执行哪些任务：key:下几秒，value:任务id的list
     private volatile static Map<Integer, List<Integer>> ringData = new ConcurrentHashMap<>();
 
     public void start(){
@@ -69,7 +70,7 @@ public class JobScheduleHelper {
                         connAutoCommit = conn.getAutoCommit();
                         conn.setAutoCommit(false);
 
-                        //获取锁：用于admin集群部署时向数据库请求数据
+                        //通过数据库实现分布式锁：用于admin集群部署时向数据库请求数据
                         preparedStatement = conn.prepareStatement(  "select * from xxl_job_lock where lock_name = 'schedule_lock' for update" );
                         preparedStatement.execute();
 
@@ -84,7 +85,7 @@ public class JobScheduleHelper {
 
                                 // time-ring jump
                                 if (nowTime > jobInfo.getTriggerNextTime() + PRE_READ_MS) {
-                                    // 2.1、trigger-expire > 5s：pass && make next-trigger-time
+                                    // 2.1、trigger-expire > 5s：pass && make next-trigger-time 触发时间过期5s以上
                                     logger.warn(">>>>>>>>>>> xxl-job, schedule misfire, jobId = " + jobInfo.getId());
 
                                     // fresh next
@@ -226,9 +227,9 @@ public class JobScheduleHelper {
                 while (!ringThreadToStop) {
 
                     try {
-                        // second data
+                        // second data 取当前秒的所有任务
                         List<Integer> ringItemData = new ArrayList<>();
-                        int nowSecond = Calendar.getInstance().get(Calendar.SECOND);   // 避免处理耗时太长，跨过刻度，向前校验一个刻度；
+                        int nowSecond = Calendar.getInstance().get(Calendar.SECOND);   // 避免处理耗时太长，跨过应有的刻度，所以向前校验一个刻度；
                         for (int i = 0; i < 2; i++) {
                             List<Integer> tmpData = ringData.remove( (nowSecond+60-i)%60 );
                             if (tmpData != null) {
@@ -270,6 +271,12 @@ public class JobScheduleHelper {
         ringThread.start();
     }
 
+    /**
+     * 根据cron表达式算出下次任务执行的时间
+     * @param jobInfo
+     * @param fromTime
+     * @throws ParseException
+     */
     private void refreshNextValidTime(XxlJobInfo jobInfo, Date fromTime) throws ParseException {
         Date nextValidTime = new CronExpression(jobInfo.getJobCron()).getNextValidTimeAfter(fromTime);
         if (nextValidTime != null) {
@@ -282,6 +289,11 @@ public class JobScheduleHelper {
         }
     }
 
+    /**
+     *  将下面要执行的任务放入map中
+     * @param ringSecond 第几秒
+     * @param jobId 任务id
+     */
     private void pushTimeRing(int ringSecond, int jobId){
         // push async ring
         List<Integer> ringItemData = ringData.get(ringSecond);
