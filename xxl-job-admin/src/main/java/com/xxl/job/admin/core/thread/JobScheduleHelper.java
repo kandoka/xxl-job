@@ -69,16 +69,17 @@ public class JobScheduleHelper {
                         connAutoCommit = conn.getAutoCommit();
                         conn.setAutoCommit(false);
 
+                        //获取锁：用于admin集群部署时向数据库请求数据
                         preparedStatement = conn.prepareStatement(  "select * from xxl_job_lock where lock_name = 'schedule_lock' for update" );
                         preparedStatement.execute();
 
                         // tx start
 
-                        // 1、pre read
+                        // 1、pre read 预读：如果需要10点触发任务，10点去读取会晚
                         long nowTime = System.currentTimeMillis();
                         List<XxlJobInfo> scheduleList = XxlJobAdminConfig.getAdminConfig().getXxlJobInfoDao().scheduleJobQuery(nowTime + PRE_READ_MS, preReadCount);
                         if (scheduleList!=null && scheduleList.size()>0) {
-                            // 2、push time-ring
+                            // 2、push time-ring 添加下次要执行的任务
                             for (XxlJobInfo jobInfo: scheduleList) {
 
                                 // time-ring jump
