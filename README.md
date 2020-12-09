@@ -1,59 +1,70 @@
-```
-xxl-job-2.2.0
-├─ pom.xml
-├─ xxl-job-admin
-│    ├─ Dockerfile
-│    ├─ pom.xml
-│    ├─ src
-│    │    ├─ main
-│    │    └─ test
-│    ├─ target
-│    │    ├─ classes
-│    │    ├─ generated-sources
-│    │    ├─ generated-test-sources
-│    │    ├─ maven-archiver
-│    │    ├─ maven-status
-│    │    ├─ test-classes
-│    │    ├─ xxl-job-admin-2.2.0.jar
-│    │    └─ xxl-job-admin-2.2.0.jar.original
-│    └─ xxl-job-admin.iml
-├─ xxl-job-core
-│    ├─ pom.xml
-│    ├─ src
-│    │    └─ main
-│    ├─ target
-│    │    ├─ classes
-│    │    └─ generated-sources
-│    └─ xxl-job-core.iml
-├─ xxl-job-executor-samples
-│    ├─ pom.xml
-│    ├─ xxl-job-executor-sample-frameless
-│    │    ├─ pom.xml
-│    │    ├─ src
-│    │    └─ xxl-job-executor-sample-frameless.iml
-│    ├─ xxl-job-executor-sample-jboot
-│    │    ├─ pom.xml
-│    │    ├─ src
-│    │    └─ xxl-job-executor-sample-jboot.iml
-│    ├─ xxl-job-executor-sample-jfinal
-│    │    ├─ pom.xml
-│    │    ├─ src
-│    │    └─ xxl-job-executor-sample-jfinal.iml
-│    ├─ xxl-job-executor-sample-nutz
-│    │    ├─ pom.xml
-│    │    ├─ src
-│    │    └─ xxl-job-executor-sample-nutz.iml
-│    ├─ xxl-job-executor-sample-spring
-│    │    ├─ pom.xml
-│    │    ├─ src
-│    │    └─ xxl-job-executor-sample-spring.iml
-│    ├─ xxl-job-executor-sample-springboot
-│    │    ├─ Dockerfile
-│    │    ├─ pom.xml
-│    │    ├─ src
-│    │    ├─ target
-│    │    └─ xxl-job-executor-sample-springboot.iml
-│    └─ xxl-job-executor-samples.iml
-└─ xxl-job.iml
-```
+# XXL-Job
+
+## 重要概念
+
+### 调度中心（Admin）
+
+- 作用
+
+  - 调度中心主要有两个工作：1.定时读取注册的执行器，根据调度策略和路由策略将任务分配给这些执行器去执行。2.记录调度日志
+
+- 子组件
+
+  - 触发器
+
+    - 作用
+
+      - 触发器是具体去调用远程执行器的线程。调度中心维护了一个触发器线程的线程池。根据调度策略，当一个任务需要被执行时，调度中心将这个任务交给一个触发器去触发远程调用。触发器再根据路由规则去调用远程执行器。实现了调度和调用的解耦。
+
+### 执行器（Excutor）
+
+- 作用
+
+  - 执行器主要有3个工作：1.获取远程调度中心地址，将自己注册进去。2.作为rpc的服务端，接受调度中心的远程调用，执行任务。3.作为rpc的客户端，任务结束后，调用调度中心的远程回调方法
+
+## 源码分析
+
+### 路由策略
+
+- 具体路由策略
+
+  - ExecutorRouteRound
+
+    - 轮询策略，维护了一个map，记录每个job进行路由的计数，每次路由时取出计数并++，与注册执行器地址列表的size取余。这样可以保证每个任务能轮询一遍注册执行器列表
+
+  - ExecutorRouteRandom
+
+    - 随机策略，随机从注册执行器的地址列表取出一个地址
+
+  - ExecutorRouteFirst
+
+    - 第一个策略，返回注册执行器的地址列表的第一个地址
+
+  - ExecutorRouteLast
+
+    - 最后一个策略，返回注册执行器的地址列表的最后一个地址
+
+  - ExecutorRouteConsistentHash
+
+    - 一致性hash策略，分组下机器地址相同，不同JOB均匀散列在不同机器上，保证分组下机器分配JOB平均；且每个JOB固定调度其中一台机器
+
+  - ExecutorRouteLRU
+
+    - 最近最久未使用策略，为每个任务维护了一个LinkedHashMap记录访问的执行器的地址顺序，按顺序最久未使用的优先
+
+  - ExecutorRouteLFU
+
+    - 最近不经常使用策略，为每个任务维护了一个HashMap，对每个任务记录每个地址使用的次数。取地址时将map转换成ArrayList进行排序，取使用次数最少的地址
+
+  - ExecutorRouteBusyover
+
+    - 故障转移策略，对执行器进行心跳检测，通过的则返回这个执行器地址，不通过的则检测下一个执行器
+
+  - ExecutorRouteFailover
+
+    - 忙碌转移策略，检测执行器是否正在执行任务，是则跳过，检测下一个，否则返回这个执行器地址
+
+- 总结
+
+  - 设计模式使用了策略模式，每种路由策略都继承了ExecutorRouter这个抽象父类，并重写父类的route抽象方法。调用方可以调用route的实现方法来获得注册的执行器的路由地址。
 
