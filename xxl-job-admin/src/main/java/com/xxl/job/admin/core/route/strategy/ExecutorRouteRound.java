@@ -14,6 +14,7 @@ import java.util.concurrent.ConcurrentMap;
  */
 public class ExecutorRouteRound extends ExecutorRouter {
 
+    //key: jobId, value: 路由到的次数
     private static ConcurrentMap<Integer, Integer> routeCountEachJob = new ConcurrentHashMap<Integer, Integer>();
     private static long CACHE_VALID_TIME = 0;
     private static int count(int jobId) {

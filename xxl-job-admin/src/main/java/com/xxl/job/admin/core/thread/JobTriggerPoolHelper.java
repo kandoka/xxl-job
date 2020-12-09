@@ -67,7 +67,14 @@ public class JobTriggerPoolHelper {
 
 
     /**
-     * add trigger
+     * 添加触发器到线程池中
+     *
+     * @param jobId
+     * @param triggerType
+     * @param failRetryCount
+     * @param executorShardingParam
+     * @param executorParam
+     * @param addressList
      */
     public void addTrigger(final int jobId,
                            final TriggerTypeEnum triggerType,
@@ -76,7 +83,7 @@ public class JobTriggerPoolHelper {
                            final String executorParam,
                            final String addressList) {
 
-        // choose thread pool
+        // choose thread pool 选择一个触发器线程池，优先快池。超时的任务过多则选慢池
         ThreadPoolExecutor triggerPool_ = fastTriggerPool;
         AtomicInteger jobTimeoutCount = jobTimeoutCountMap.get(jobId);
         if (jobTimeoutCount!=null && jobTimeoutCount.get() > 10) {      // job-timeout 10 times in 1 min
@@ -133,6 +140,8 @@ public class JobTriggerPoolHelper {
     }
 
     /**
+     * 添加触发器到线程池中
+     *
      * @param jobId
      * @param triggerType
      * @param failRetryCount

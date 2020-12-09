@@ -54,7 +54,7 @@ public class ExecutorRouteLFU extends ExecutorRouter {
             }
         }
 
-        // load least userd count address
+        // load least used count address 取使用次数最少的
         List<Map.Entry<String, Integer>> lfuItemList = new ArrayList<Map.Entry<String, Integer>>(lfuItemMap.entrySet());
         Collections.sort(lfuItemList, new Comparator<Map.Entry<String, Integer>>() {
             @Override

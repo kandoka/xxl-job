@@ -80,7 +80,7 @@ public class JobScheduleHelper {
                         long nowTime = System.currentTimeMillis();
                         List<XxlJobInfo> scheduleList = XxlJobAdminConfig.getAdminConfig().getXxlJobInfoDao().scheduleJobQuery(nowTime + PRE_READ_MS, preReadCount);
                         if (scheduleList!=null && scheduleList.size()>0) {
-                            // 2、push time-ring 添加下次要执行的任务
+                            // 2、push time-ring 从调度列表添加下次要触发的任务
                             for (XxlJobInfo jobInfo: scheduleList) {
 
                                 // time-ring jump

@@ -14,10 +14,10 @@ public abstract class ExecutorRouter {
     protected static Logger logger = LoggerFactory.getLogger(ExecutorRouter.class);
 
     /**
-     * route address
+     * route address 根据路由策略，返回相应的执行器地址
      *
-     * @param addressList
-     * @return  ReturnT.content=address
+     * @param addressList 注册的执行器地址列表
+     * @return  ReturnT.content=address 执行器
      */
     public abstract ReturnT<String> route(TriggerParam triggerParam, List<String> addressList);
 

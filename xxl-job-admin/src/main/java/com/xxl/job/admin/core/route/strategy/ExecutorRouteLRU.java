@@ -42,13 +42,13 @@ public class ExecutorRouteLRU extends ExecutorRouter {
             jobLRUMap.putIfAbsent(jobId, lruItem);
         }
 
-        // put new
+        // put new 新执行器加入到对应的LinkedHashMap
         for (String address: addressList) {
             if (!lruItem.containsKey(address)) {
                 lruItem.put(address, address);
             }
         }
-        // remove old
+        // remove old 对应的LinkedHashMap删除
         List<String> delKeys = new ArrayList<>();
         for (String existKey: lruItem.keySet()) {
             if (!addressList.contains(existKey)) {
