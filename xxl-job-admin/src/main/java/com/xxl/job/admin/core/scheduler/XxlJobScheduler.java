@@ -38,7 +38,7 @@ public class XxlJobScheduler  {
         JobLosedMonitorHelper.getInstance().start();
 
         // admin trigger pool start
-        //5. 启动回调触发器的线程池
+        //5. 启动触发器的线程池
         JobTriggerPoolHelper.toStart();
 
         // admin log report start

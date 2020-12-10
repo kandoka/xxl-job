@@ -11,6 +11,8 @@ import org.slf4j.LoggerFactory;
 import java.util.concurrent.TimeUnit;
 
 /**
+ * 开启一个线程，每隔30秒向调度中心请求注册，维持自己的注册
+ *
  * Created by xuxueli on 17/3/2.
  */
 public class ExecutorRegistryThread {

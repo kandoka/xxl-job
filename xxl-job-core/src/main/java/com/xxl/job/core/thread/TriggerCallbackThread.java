@@ -31,7 +31,7 @@ public class TriggerCallbackThread {
     }
 
     /**
-     * job results callback queue
+     * job results callback queue 任务执行结果的回调队列
      */
     private LinkedBlockingQueue<HandleCallbackParam> callBackQueue = new LinkedBlockingQueue<HandleCallbackParam>();
     public static void pushCallBack(HandleCallbackParam callback){
@@ -53,7 +53,7 @@ public class TriggerCallbackThread {
             return;
         }
 
-        // callback
+        // callback 回调线程，循环将回调队列里的元素取出，进行回调
         triggerCallbackThread = new Thread(new Runnable() {
 
             @Override
@@ -62,6 +62,7 @@ public class TriggerCallbackThread {
                 // normal callback
                 while(!toStop){
                     try {
+                        //从回调队列拿到一个回调
                         HandleCallbackParam callback = getInstance().callBackQueue.take();
                         if (callback != null) {
 
@@ -103,7 +104,7 @@ public class TriggerCallbackThread {
         triggerCallbackThread.start();
 
 
-        // retry
+        // retry 重试回调线程。远程调用时可能会失败，失败的回调会记录到回调失败文件中，此线程会读取该文件中的记录并重新回调。
         triggerRetryCallbackThread = new Thread(new Runnable() {
             @Override
             public void run() {
@@ -164,6 +165,7 @@ public class TriggerCallbackThread {
         // callback, will retry if error
         for (AdminBiz adminBiz: XxlJobExecutor.getAdminBizList()) {
             try {
+                //远程调用调度中心代理对象的callback方法
                 ReturnT<String> callbackResult = adminBiz.callback(callbackParamList);
                 if (callbackResult!=null && ReturnT.SUCCESS_CODE == callbackResult.getCode()) {
                     callbackLog(callbackParamList, "<br>----------- xxl-job job callback finish.");

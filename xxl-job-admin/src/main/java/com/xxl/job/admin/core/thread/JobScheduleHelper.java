@@ -32,7 +32,7 @@ public class JobScheduleHelper {
     private Thread ringThread;
     private volatile boolean scheduleThreadToStop = false;
     private volatile boolean ringThreadToStop = false;
-    //多少秒后腰执行哪些任务：key:下几秒，value:任务id的list
+    //多少秒后要执行哪些任务：key:下几秒，value:任务id的list
     private volatile static Map<Integer, List<Integer>> ringData = new ConcurrentHashMap<>();
 
     public void start(){

@@ -40,7 +40,11 @@ public class XxlJobConfig {
     @Value("${xxl.job.executor.logretentiondays}")
     private int logRetentionDays;
 
-
+    /**
+     * 设置执行器各项属性
+     *
+     * @return XxlJobSpringExecutor
+     */
     @Bean
     public XxlJobSpringExecutor xxlJobExecutor() {
         logger.info(">>>>>>>>>>> xxl-job config init.");

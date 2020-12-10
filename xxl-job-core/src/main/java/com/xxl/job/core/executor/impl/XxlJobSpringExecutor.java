@@ -41,7 +41,7 @@ public class XxlJobSpringExecutor extends XxlJobExecutor implements ApplicationC
         // refresh GlueFactory
         GlueFactory.refreshInstance(1);
 
-        // super start
+        // super start 调用父类的start
         try {
             super.start();
         } catch (Exception e) {
@@ -85,6 +85,7 @@ public class XxlJobSpringExecutor extends XxlJobExecutor implements ApplicationC
         // init job handler from method
         String[] beanDefinitionNames = applicationContext.getBeanNamesForType(Object.class, false, true);
         for (String beanDefinitionName : beanDefinitionNames) {
+            //通过bean的名字获取bean对象
             Object bean = applicationContext.getBean(beanDefinitionName);
 
             Map<Method, XxlJob> annotatedMethods = null;   // referred to ：org.springframework.context.event.EventListenerMethodProcessor.processBean

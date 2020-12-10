@@ -64,17 +64,17 @@ public class XxlJobExecutor  {
     // ---------------------- start + stop ----------------------
     public void start() throws Exception {
 
-        // init logpath
+        // init logpath 初始化日志路径
         XxlJobFileAppender.initLogPath(logPath);
 
-        // init invoker, admin-client
+        // init invoker, admin-client 初始化远程AdminBiz服务代理对象
         initAdminBizList(adminAddresses, accessToken);
 
 
-        // init JobLogFileCleanThread
+        // init JobLogFileCleanThread 启动日志文件清理线程，定期清理过期日志
         JobLogFileCleanThread.getInstance().start(logRetentionDays);
 
-        // init TriggerCallbackThread
+        // init TriggerCallbackThread 启动任务回调线程
         TriggerCallbackThread.getInstance().start();
 
         // init executor-server
@@ -115,11 +115,12 @@ public class XxlJobExecutor  {
     private static List<AdminBiz> adminBizList;
     private void initAdminBizList(String adminAddresses, String accessToken) throws Exception {
         if (adminAddresses!=null && adminAddresses.trim().length()>0) {
+            //可已有多个调度中心地址，用“,”分隔
             for (String address: adminAddresses.trim().split(",")) {
                 if (address!=null && address.trim().length()>0) {
-
+                    //拿到地址
                     AdminBiz adminBiz = new AdminBizClient(address.trim(), accessToken);
-
+                    //放到地址列表中
                     if (adminBizList == null) {
                         adminBizList = new ArrayList<AdminBiz>();
                     }
