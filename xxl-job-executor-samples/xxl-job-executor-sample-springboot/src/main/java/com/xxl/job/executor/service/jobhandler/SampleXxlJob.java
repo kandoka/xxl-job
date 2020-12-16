@@ -4,6 +4,7 @@ import com.xxl.job.core.biz.model.ReturnT;
 import com.xxl.job.core.handler.IJobHandler;
 import com.xxl.job.core.handler.annotation.XxlJob;
 import com.xxl.job.core.log.XxlJobLogger;
+import com.xxl.job.core.util.GsonTool;
 import com.xxl.job.core.util.ShardingUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -40,11 +41,16 @@ public class SampleXxlJob {
     public ReturnT<String> demoJobHandler(String param) throws Exception {
         XxlJobLogger.log("XXL-JOB, Hello World.");
 
+        String[] arr = GsonTool.fromJson(param, String[].class);
+        System.out.println(Arrays.toString(arr));
+
         for (int i = 0; i < 5; i++) {
             XxlJobLogger.log("beat at:" + i);
             TimeUnit.SECONDS.sleep(2);
         }
-        return ReturnT.SUCCESS;
+
+        return new ReturnT<>(ReturnT.SUCCESS_CODE, Arrays.toString(arr));
+//        return ReturnT.SUCCESS;
     }
 
 
@@ -72,7 +78,10 @@ public class SampleXxlJob {
         Integer endIndex = size * (shardingVO.getIndex() + 1) /shardingVO.getTotal();
         System.out.println("开始坐标："+startIndex+" 结束坐标："+endIndex);
 
-        return ReturnT.SUCCESS;
+        char[] arr = param.toCharArray();
+        char[] res = Arrays.copyOfRange(arr, startIndex, endIndex);
+
+        return new ReturnT(ReturnT.SUCCESS_CODE, Arrays.toString(res));
     }
 
 

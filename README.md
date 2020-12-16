@@ -88,7 +88,7 @@
 
 - Bean模式
 
-	- 本质是Spring容器中的一个Bean，添加相关准姐后，会自动被执行器扫描找到。
+	- 本质是Spring容器中的一个Bean，添加相关注解，会自动被执行器扫描找到。
 
 - Glue模式
 
@@ -125,7 +125,7 @@
 
 	- JobRegistryMonitorHelper
 
-		- 用于监控执行器注册的线程。
+		- 用于监控执行器注册的线程。定期查询数据库，读取注册的执行器信息。
 
 	- JobFailMonitorHelper
 
@@ -137,7 +137,7 @@
 
 	- JobTriggerPoolHelper
 
-		- 触发器线程池，用于维护一组触发器线程。
+		- 触发器线程池，用于维护一组线程。有任务需要触发时，从中取出一个线程来处理。
 		- XxlJobTrigger
 
 			- 线程池中的触发器线程会调用这个类的trigger方法，触发远程的执行器。
@@ -148,7 +148,7 @@
 
 	- JobScheduleHelper
 
-		- 定时任务调度器线程
+		- 定时任务调度器线程。定期从数据库中读取定时任务，交给触发器线程池处理。
 
 - 路由策略
 
@@ -196,26 +196,34 @@
 
 ### 执行器的重要组件
 
-- JobHandler
+- 线程与线程池
 
-	- 可根据业务需求自行实现的JobHandler方法，用于在Bean模式的任务中执行具体的业务逻辑。在类上加Component注解，并且类中的方法上加XxlJob注解即可。
+	- ExecutorRegistryThread
 
-- EmbedServer
+		- 开启一个线程，每隔30秒向调度中心请求注册，维持自己的注册
 
-	- 启动一个线程，监听一个端口，处理来自调度中心的rpc请求。
+	- EmbedServer
 
-- TriggerCallbackThread
+		- 启动一个线程，监听一个端口，处理来自调度中心的rpc请求。
 
-	- 启动一个线程，进行任务执行完成后的回调工作。它维护了一个回调队列，循环从中取出任务执行结果。使用调度中心的代理对象中的callback方法进行远程调用。
+	- TriggerCallbackThread
 
-- ExecutorBizImpl
+		- 启动一个线程，进行任务执行完成后的回调工作。它维护了一个回调队列，循环从中取出任务执行结果。使用调度中心的代理对象中的callback方法进行远程调用。
 
-	- 实现了ExecutorBiz接口，作为本地执行器的代理对象，可以被本地的EmbedServer监听线程调用，进行心跳检测、任务执行等工作。其中任务执行主要有2个步骤。1.向XxlJobExecutor申请一个JobThread线程来执行任务。2.将放入JobThread的执行队列中
+- 任务执行相关
 
-- XxlJobExecutor
+	- IJobHandler
 
-	- 执行器具体的实施类，维护了一个map作为注册表，每个任务id对应了一个处理它的JobThread。多个任务可以对应一个JobThread。同时维护了另一个map，用来注册handler的名字和对应的handler。
-	- JobThread
+		- 抽象类，可根据业务需求自行实现的execute方法。可用于任务执行模式中的Glue模式。
 
-		- 维护了一个执行队列，聚合了一个IJobHandler，循环从队列中取出任务来执行。执行时，再启动一个线程阻塞地执行任务，调用handler的excute方法。执行完毕，将结果放入TriggerCallbackThread的回调队列中。
+	- ExecutorBizImpl
+
+		- 实现了ExecutorBiz接口，作为执行器的另一个代理对象，可以被本地的EmbedServer监听线程调用，进行心跳检测、任务执行等工作。其中任务执行主要有2个步骤。1.向XxlJobExecutor申请一个JobThread线程来执行任务。2.将放入JobThread的执行队列中
+
+	- XxlJobExecutor
+
+		- 控制执行器生命周期的实现类。维护了一个map作为注册表，每个任务id对应了一个处理它的JobThread。多个任务可以对应一个JobThread。同时维护了另一个map，用来注册handler的名字和对应的handler。
+		- JobThread
+
+			- 维护了一个执行队列，聚合了一个IJobHandler，循环从队列中取出任务来执行。执行时，再启动一个线程阻塞地执行任务，调用handler的excute方法。执行完毕，将结果放入TriggerCallbackThread的回调队列中。
 
