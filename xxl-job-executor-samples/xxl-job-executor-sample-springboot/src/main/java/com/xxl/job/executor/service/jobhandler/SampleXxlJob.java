@@ -41,15 +41,12 @@ public class SampleXxlJob {
     public ReturnT<String> demoJobHandler(String param) throws Exception {
         XxlJobLogger.log("XXL-JOB, Hello World.");
 
-        String[] arr = GsonTool.fromJson(param, String[].class);
-        System.out.println(Arrays.toString(arr));
-
         for (int i = 0; i < 5; i++) {
             XxlJobLogger.log("beat at:" + i);
             TimeUnit.SECONDS.sleep(2);
         }
 
-        return new ReturnT<>(ReturnT.SUCCESS_CODE, Arrays.toString(arr));
+        return new ReturnT<>(ReturnT.SUCCESS_CODE, param);
 //        return ReturnT.SUCCESS;
     }
 
